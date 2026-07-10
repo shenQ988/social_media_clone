@@ -1,0 +1,84 @@
+#!/bin/bash
+# pixframedb
+
+# Stop on errors
+# See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
+set -Eeuo pipefail
+set -x
+# Sanity check command line options
+usage() {
+  echo "Usage: $0 (create|destroy|reset|dump|random)"
+}
+
+if [ $# -ne 1 ]; then
+    usage
+    exit 1
+fi
+
+# Parse argument.  $1 is the first argument
+case $1 in
+    "create")
+
+    # check if the database exists to avoid clobbering
+    if [ -f "var/pixframe.sqlite3" ]; then
+        echo "Error: database already exists"
+        exit 1
+    fi
+
+    mkdir -p var/uploads
+    sqlite3 var/pixframe.sqlite3 < sql/schema.sql
+    sqlite3 var/pixframe.sqlite3 < sql/data.sql
+    cp sql/uploads/* var/uploads/
+    ;;
+
+"destroy")
+    rm -rf var/pixframe.sqlite3 var/uploads
+    ;;
+
+"reset")
+    rm -rf var/pixframe.sqlite3 var/uploads
+    mkdir -p var/uploads
+    sqlite3 var/pixframe.sqlite3 < sql/schema.sql
+    sqlite3 var/pixframe.sqlite3 < sql/data.sql
+    cp sql/uploads/* var/uploads/
+    ;;
+
+"dump")
+    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM comments'
+    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM following'
+    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM likes'
+    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM posts'
+    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM users'
+    ;;
+  "random")
+    DB_FILENAME=var/pixframe.sqlite3
+
+    if command -v magick &> /dev/null; then
+      IM_CMD="magick"
+    elif command -v convert &> /dev/null; then
+      IM_CMD="convert"
+    else
+      echo "Error: Neither 'magick' nor 'convert' command found."
+      exit 1
+    fi
+
+    for i in `seq 1 100`; do
+      FILENAME="$(uuidgen).png"
+      NUMS=()
+      for j in `seq 1 6`; do
+          NUMS+=($(($RANDOM % 255)))
+      done
+      "$IM_CMD" -size 360x360 \
+              radial-gradient:"rgb(${NUMS[0]},${NUMS[1]},${NUMS[2]})-rgb(${NUMS[3]},${NUMS[4]},${NUMS[5]})" \
+              -pointsize 64 -fill black -gravity center -annotate 0 "image $i" "var/uploads/$FILENAME"
+      OWNER="mkim"
+      sqlite3 -echo -batch ${DB_FILENAME} "INSERT INTO posts(filename, owner) VALUES('${FILENAME}','${OWNER}');"
+    done
+    ;;
+
+  *)
+    usage
+    exit 1
+    ;;
+esac
+

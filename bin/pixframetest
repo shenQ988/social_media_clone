@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Stop on errors, print commands
+set -Eeuo pipefail
+set -x
+
+# Run style checks
+pycodestyle pixframe
+pydocstyle pixframe
+pylint pixframe
+
+# Run unit tests
+pytest -v tests
+
+npx eslint pixframe/js
+npx prettier --check pixframe/js

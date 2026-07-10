@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+"""List all registered Flask routes with their source files."""
+
+import inspect
+import pixframe
+
+app = pixframe.app
+
+# Collect route info
+routes = []
+for rule in app.url_map.iter_rules():
+    endpoint = rule.endpoint
+    methods = ','.join(sorted(rule.methods - {'HEAD', 'OPTIONS'}))
+    
+    # Get the view function and its source file
+    view_func = app.view_functions.get(endpoint)
+    if view_func:
+        try:
+            source_file = inspect.getfile(view_func)
+            # Make path relative and shorter
+            if 'pixframe/' in source_file:
+                source_file = 'pixframe/' + source_file.split('pixframe/')[-1]
+        except TypeError:
+            source_file = 'built-in'
+    else:
+        source_file = 'unknown'
+    
+    routes.append((endpoint, methods, str(rule), source_file))
+
+# Sort by endpoint name
+routes.sort(key=lambda x: x[0])
+
+# Calculate column widths
+endpoint_width = max(len('Endpoint'), max(len(r[0]) for r in routes))
+methods_width = max(len('Methods'), max(len(r[1]) for r in routes))
+rule_width = max(len('Rule'), max(len(r[2]) for r in routes))
+
+# Print header
+print(f"{'Endpoint':<{endpoint_width}}  {'Methods':<{methods_width}}  {'Rule':<{rule_width}}  File")
+print(f"{'-'*endpoint_width}  {'-'*methods_width}  {'-'*rule_width}  {'-'*30}")
+
+# Print routes
+for endpoint, methods, rule, source_file in routes:
+    print(f"{endpoint:<{endpoint_width}}  {methods:<{methods_width}}  {rule:<{rule_width}}  {source_file}")

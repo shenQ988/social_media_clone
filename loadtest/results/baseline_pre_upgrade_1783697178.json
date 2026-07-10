@@ -1,0 +1,40 @@
+{
+  "label": "baseline_pre_upgrade",
+  "timestamp": "2026-07-10T23:26:18",
+  "target": {
+    "path": "/api/v1/posts/9/",
+    "postid": 9
+  },
+  "load": {
+    "total_requests": 10000,
+    "concurrency": 100
+  },
+  "throughput": {
+    "wall_seconds": 10.501,
+    "requests_per_sec": 952.25
+  },
+  "latency_ms": {
+    "min": 10.23,
+    "mean": 103.59,
+    "median": 104.33,
+    "p95": 127.34,
+    "p99": 144.43,
+    "max": 174.16
+  },
+  "errors": {
+    "count": 0,
+    "rate_pct": 0.0
+  },
+  "cpu_pct": {
+    "avg": 165.8,
+    "peak": 176.7,
+    "samples": 21
+  },
+  "db_queries_per_request": {
+    "avg": 4,
+    "min": 4,
+    "max": 4,
+    "total": 40000,
+    "sampled_requests": 10000
+  }
+}

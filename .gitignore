@@ -1,0 +1,22 @@
+# Python
+env/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+
+# Node / frontend build
+node_modules/
+pixframe/static/js/bundle.js
+pixframe/static/js/bundle.js.map
+
+# Runtime data (database + user uploads, regenerated via bin/pixframedb)
+var/
+
+# Editor/OS cruft
+.DS_Store
+.vscode/
+.idea/
+
+# Env overrides used for local dev (see PIXFRAME_SETTINGS)
+local_settings.py
