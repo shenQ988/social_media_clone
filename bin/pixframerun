@@ -9,21 +9,25 @@
 set -Eeuo pipefail
 set -x
 
-# 1. Check if the database exists
-if [ ! -f var/pixframe.sqlite3 ]; then
-    echo "Error: can't find database var/pixframe.sqlite3"
-    echo "Try: ./bin/pixframedb reset"
+DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5432/pixframe}"
+
+# 1. Check that Postgres is reachable and the database has been seeded
+if ! psql "$DATABASE_URL" -tAc \
+    "SELECT 1 FROM information_schema.tables WHERE table_name='users'" \
+    2>/dev/null | grep -q 1; then
+    echo "Error: can't find the pixframe database (or Postgres isn't running)"
+    echo "Start Postgres (e.g. docker run ... postgres:16), then: ./bin/pixframedb create"
     exit 1
 fi
 
 # 2. Add the trap to kill background processes (webpack) on exit
-# This ensures that when you hit Ctrl+C, it stops both Flask and Webpack.
+# This ensures that when you hit Ctrl+C, it stops both the backend and Webpack.
 trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 # 3. Start webpack in watch mode in the background
-# The '&' is crucial—it lets the script continue to the next line (Flask)
+# The '&' is crucial—it lets the script continue to the next line (Spring Boot)
 # while webpack keeps running and watching for file changes.
 npx webpack --watch &
 
-# 4. Run the Flask development server
-flask --app pixframe --debug run --host 0.0.0.0 --port 8000
+# 4. Run the Spring Boot development server (port 8000, same as before)
+mvn -f backend/pom.xml spring-boot:run

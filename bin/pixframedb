@@ -1,10 +1,20 @@
 #!/bin/bash
 # pixframedb
+#
+# Drives the Postgres database via psql. Connection info comes from
+# DATABASE_URL if set, otherwise defaults to the local dev Postgres
+# container documented in the README / migration plan:
+#   docker run --name pixframe-pg -e POSTGRES_USER=pixframe \
+#     -e POSTGRES_PASSWORD=pixframe -e POSTGRES_DB=pixframe \
+#     -p 5432:5432 -d postgres:16
 
 # Stop on errors
 # See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 set -Eeuo pipefail
 set -x
+
+DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5432/pixframe}"
+
 # Sanity check command line options
 usage() {
   echo "Usage: $0 (create|destroy|reset|dump|random)"
@@ -19,40 +29,44 @@ fi
 case $1 in
     "create")
 
-    # check if the database exists to avoid clobbering
-    if [ -f "var/pixframe.sqlite3" ]; then
+    # check if the database already has our tables, to avoid clobbering
+    if psql "$DATABASE_URL" -tAc \
+        "SELECT 1 FROM information_schema.tables WHERE table_name='users'" \
+        | grep -q 1; then
         echo "Error: database already exists"
         exit 1
     fi
 
     mkdir -p var/uploads
-    sqlite3 var/pixframe.sqlite3 < sql/schema.sql
-    sqlite3 var/pixframe.sqlite3 < sql/data.sql
+    psql "$DATABASE_URL" -f sql/schema.sql
+    psql "$DATABASE_URL" -f sql/data.sql
     cp sql/uploads/* var/uploads/
     ;;
 
 "destroy")
-    rm -rf var/pixframe.sqlite3 var/uploads
+    psql "$DATABASE_URL" -c \
+        "DROP TABLE IF EXISTS comments, likes, following, posts, users CASCADE;"
+    rm -rf var/uploads
     ;;
 
 "reset")
-    rm -rf var/pixframe.sqlite3 var/uploads
+    psql "$DATABASE_URL" -c \
+        "DROP TABLE IF EXISTS comments, likes, following, posts, users CASCADE;"
+    rm -rf var/uploads
     mkdir -p var/uploads
-    sqlite3 var/pixframe.sqlite3 < sql/schema.sql
-    sqlite3 var/pixframe.sqlite3 < sql/data.sql
+    psql "$DATABASE_URL" -f sql/schema.sql
+    psql "$DATABASE_URL" -f sql/data.sql
     cp sql/uploads/* var/uploads/
     ;;
 
 "dump")
-    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM comments'
-    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM following'
-    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM likes'
-    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM posts'
-    sqlite3 -batch -line var/pixframe.sqlite3 'SELECT * FROM users'
+    psql "$DATABASE_URL" -c 'SELECT * FROM comments'
+    psql "$DATABASE_URL" -c 'SELECT * FROM following'
+    psql "$DATABASE_URL" -c 'SELECT * FROM likes'
+    psql "$DATABASE_URL" -c 'SELECT * FROM posts'
+    psql "$DATABASE_URL" -c 'SELECT * FROM users'
     ;;
   "random")
-    DB_FILENAME=var/pixframe.sqlite3
-
     if command -v magick &> /dev/null; then
       IM_CMD="magick"
     elif command -v convert &> /dev/null; then
@@ -72,7 +86,8 @@ case $1 in
               radial-gradient:"rgb(${NUMS[0]},${NUMS[1]},${NUMS[2]})-rgb(${NUMS[3]},${NUMS[4]},${NUMS[5]})" \
               -pointsize 64 -fill black -gravity center -annotate 0 "image $i" "var/uploads/$FILENAME"
       OWNER="mkim"
-      sqlite3 -echo -batch ${DB_FILENAME} "INSERT INTO posts(filename, owner) VALUES('${FILENAME}','${OWNER}');"
+      psql "$DATABASE_URL" -c \
+        "INSERT INTO posts(filename, owner) VALUES('${FILENAME}','${OWNER}');"
     done
     ;;
 
@@ -81,4 +96,3 @@ case $1 in
     exit 1
     ;;
 esac
-

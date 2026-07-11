@@ -4,13 +4,9 @@
 set -Eeuo pipefail
 set -x
 
-# Run style checks
-pycodestyle pixframe
-pydocstyle pixframe
-pylint pixframe
+# Backend build + tests
+mvn -f backend/pom.xml test
 
-# Run unit tests
-pytest -v tests
-
+# Frontend lint/format checks
 npx eslint pixframe/js
 npx prettier --check pixframe/js

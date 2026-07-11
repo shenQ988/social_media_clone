@@ -1,5 +1,5 @@
-# Python
-env/
+# Python (loadtest/viral_post_test.py is still Python; needs its own
+# lightweight venv with requests+psutil, separate from the old backend venv)
 __pycache__/
 *.pyc
 *.egg-info/
@@ -10,13 +10,13 @@ node_modules/
 pixframe/static/js/bundle.js
 pixframe/static/js/bundle.js.map
 
-# Runtime data (database + user uploads, regenerated via bin/pixframedb)
+# Java / Maven build
+backend/target/
+
+# Runtime data (database uploads, regenerated via bin/pixframedb)
 var/
 
 # Editor/OS cruft
 .DS_Store
 .vscode/
 .idea/
-
-# Env overrides used for local dev (see PIXFRAME_SETTINGS)
-local_settings.py

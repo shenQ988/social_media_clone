@@ -3,11 +3,8 @@
 set -Eeuo pipefail
 set -x
 
-python3 -m venv env
+# Frontend dependencies
+npm ci
 
-source env/bin/activate
-
-pip install -r requirements.txt
-pip install -e .
-
-npm ci .
+# Backend dependencies (downloads once, cached in ~/.m2 afterward)
+mvn -f backend/pom.xml -q dependency:go-offline

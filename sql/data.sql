@@ -1,4 +1,4 @@
-PRAGMA foreign_keys = ON;
+-- Postgres seed data (previously SQLite; converted for the Spring Boot backend).
 
 -- Users
 -- NOTE: all seed accounts use the password "password123" for local testing.
@@ -164,3 +164,9 @@ VALUES (15, 'lchen', 11);
 
 INSERT INTO likes (likeid, owner, postid)
 VALUES (16, 'mkim', 12);
+
+-- Since rows above were inserted with explicit ids, advance the SERIAL
+-- sequences so the next auto-generated id doesn't collide with these.
+SELECT setval('posts_postid_seq', (SELECT MAX(postid) FROM posts));
+SELECT setval('comments_commentid_seq', (SELECT MAX(commentid) FROM comments));
+SELECT setval('likes_likeid_seq', (SELECT MAX(likeid) FROM likes));
