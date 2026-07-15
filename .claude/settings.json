@@ -41,7 +41,26 @@
       "Bash(curl -s -o /dev/null -w \"root: %{http_code}\\\\n\" http://localhost:8000/)",
       "Bash(curl -s -b /tmp/java_cookies.txt http://localhost:8000/api/v1/accounts/auth/ -w \"\\\\nauth: %{http_code}\\\\n\")",
       "Bash(ps -p 53429 -o pid,command)",
-      "Bash(kill 53429)"
+      "Bash(kill 53429)",
+      "Bash(brew install *)",
+      "Bash(k6 version *)",
+      "Bash(VUS=5 DURATION=5s k6 run benchmark/k6/hot_post_test.js)",
+      "Bash(echo \"exit code: $?\")",
+      "Bash(chmod +x \"/Users/qingshen/Downloads/submit.tar-3 2/benchmark/run_benchmark.sh\")",
+      "Bash(bash -n \"/Users/qingshen/Downloads/submit.tar-3 2/benchmark/run_benchmark.sh\")",
+      "Bash(./benchmark/run_benchmark.sh smoke-test *)",
+      "Bash(python3 -c ' *)",
+      "Bash(java -version)",
+      "Bash(sysctl -n machdep.cpu.brand_string)",
+      "Bash(sysctl -n hw.ncpu)",
+      "Bash(sysctl -n hw.memsize)",
+      "Bash(awk '{print $1/1024/1024/1024 \" GB\"}')",
+      "Bash(ipconfig getifaddr *)",
+      "Bash(curl -s -o /dev/null -w \"backend status: %{http_code}\\\\n\" http://localhost:8000/actuator/health)",
+      "Bash(/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate)",
+      "Bash(lsof -nP -iTCP:8000 -sTCP:LISTEN)",
+      "Bash(brew list *)",
+      "Bash(wrk --version)"
     ]
   }
 }

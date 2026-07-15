@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: pixframe-backend
+    metrics_path: /actuator/prometheus
+    static_configs:
+      # host.docker.internal resolves to the host machine from inside the
+      # container, so this reaches the Spring Boot app running on the host
+      # via `./bin/pixframerun` (not itself in Docker).
+      - targets: ["host.docker.internal:8000"]

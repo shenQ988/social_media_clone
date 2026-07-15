@@ -1,0 +1,42 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: benchmark/k6/hot_post_test.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 500 max VUs, 38s max duration (incl. graceful stop):
+              * hot_post: 500 looping VUs for 8s (gracefulStop: 30s)
+
+
+running (00.9s), 500/500 VUs, 951 complete and 0 interrupted iterations
+hot_post   [  12% ] 500 VUs  0.9s/8s
+
+running (01.9s), 500/500 VUs, 2301 complete and 0 interrupted iterations
+hot_post   [  24% ] 500 VUs  1.9s/8s
+
+running (02.9s), 500/500 VUs, 4246 complete and 0 interrupted iterations
+hot_post   [  37% ] 500 VUs  2.9s/8s
+
+running (03.9s), 500/500 VUs, 5467 complete and 0 interrupted iterations
+hot_post   [  49% ] 500 VUs  3.9s/8s
+
+running (04.9s), 500/500 VUs, 6272 complete and 0 interrupted iterations
+hot_post   [  62% ] 500 VUs  4.9s/8s
+
+running (05.9s), 500/500 VUs, 8117 complete and 0 interrupted iterations
+hot_post   [  74% ] 500 VUs  5.9s/8s
+
+running (06.9s), 500/500 VUs, 9910 complete and 0 interrupted iterations
+hot_post   [  87% ] 500 VUs  6.9s/8s
+
+running (07.9s), 500/500 VUs, 11961 complete and 0 interrupted iterations
+hot_post   [  99% ] 500 VUs  7.9s/8s
+
+running (08.2s), 000/500 VUs, 12591 complete and 0 interrupted iterations
+hot_post ✓ [ 100% ] 500 VUs  8s

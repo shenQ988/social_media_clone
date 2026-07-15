@@ -1,0 +1,19 @@
+# Actuator metrics snapshot (2026-07-13T09:09:25Z)
+-- jvm.memory.used --
+{"name":"jvm.memory.used","description":"The amount of used memory","baseUnit":"bytes","measurements":[{"statistic":"VALUE","value":1.70469352E8}],"availableTags":[{"tag":"area","values":["heap","nonheap"]},{"tag":"application","values":["pixframe-backend"]},{"tag":"id","values":["G1 Survivor Space","Compressed Class Space","Metaspace","CodeCache","G1 Old Gen","G1 Eden Space"]}]}
+-- jvm.memory.max --
+{"name":"jvm.memory.max","description":"The maximum amount of memory in bytes that can be used for memory management","baseUnit":"bytes","measurements":[{"statistic":"VALUE","value":5.419040765E9}],"availableTags":[{"tag":"area","values":["heap","nonheap"]},{"tag":"application","values":["pixframe-backend"]},{"tag":"id","values":["G1 Survivor Space","Compressed Class Space","Metaspace","G1 Old Gen","CodeCache","G1 Eden Space"]}]}
+-- process.cpu.usage --
+{"name":"process.cpu.usage","description":"The \"recent cpu usage\" for the Java Virtual Machine process","measurements":[{"statistic":"VALUE","value":8.862450171338306E-4}],"availableTags":[{"tag":"application","values":["pixframe-backend"]}]}
+-- system.cpu.usage --
+{"name":"system.cpu.usage","description":"The \"recent cpu usage\" of the system the application is running in","measurements":[{"statistic":"VALUE","value":0.7867882671925068}],"availableTags":[{"tag":"application","values":["pixframe-backend"]}]}
+-- hikaricp.connections.active --
+{"name":"hikaricp.connections.active","description":"Active connections","measurements":[{"statistic":"VALUE","value":0.0}],"availableTags":[{"tag":"application","values":["pixframe-backend"]},{"tag":"pool","values":["HikariPool-1"]}]}
+-- hikaricp.connections.pending --
+{"name":"hikaricp.connections.pending","description":"Pending threads","measurements":[{"statistic":"VALUE","value":0.0}],"availableTags":[{"tag":"application","values":["pixframe-backend"]},{"tag":"pool","values":["HikariPool-1"]}]}
+# Postgres pg_stat_database snapshot
+ datname  | numbackends | xact_commit | xact_rollback | tup_returned | tup_fetched 
+----------+-------------+-------------+---------------+--------------+-------------
+ pixframe |          11 |       81890 |             0 |      2298872 |       88837
+(1 row)
+

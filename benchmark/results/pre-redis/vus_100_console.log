@@ -1,0 +1,135 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: benchmark/k6/hot_post_test.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 100 max VUs, 1m0s max duration (incl. graceful stop):
+              * hot_post: 100 looping VUs for 30s (gracefulStop: 30s)
+
+
+running (0m01.0s), 100/100 VUs, 238 complete and 0 interrupted iterations
+hot_post   [   3% ] 100 VUs  01.0s/30s
+
+running (0m02.0s), 100/100 VUs, 1085 complete and 0 interrupted iterations
+hot_post   [   7% ] 100 VUs  02.0s/30s
+
+running (0m03.0s), 100/100 VUs, 2017 complete and 0 interrupted iterations
+hot_post   [  10% ] 100 VUs  03.0s/30s
+
+running (0m03.7s), 100/100 VUs, 2663 complete and 0 interrupted iterations
+hot_post   [  12% ] 100 VUs  03.7s/30s
+
+running (0m03.8s), 100/100 VUs, 2697 complete and 0 interrupted iterations
+hot_post   [  13% ] 100 VUs  03.8s/30s
+
+running (0m03.9s), 100/100 VUs, 2748 complete and 0 interrupted iterations
+hot_post   [  13% ] 100 VUs  03.9s/30s
+
+running (0m04.0s), 100/100 VUs, 2770 complete and 0 interrupted iterations
+hot_post   [  13% ] 100 VUs  04.0s/30s
+
+running (0m04.1s), 100/100 VUs, 2818 complete and 0 interrupted iterations
+hot_post   [  14% ] 100 VUs  04.1s/30s
+
+running (0m04.2s), 100/100 VUs, 2874 complete and 0 interrupted iterations
+hot_post   [  14% ] 100 VUs  04.2s/30s
+
+running (0m04.3s), 100/100 VUs, 2953 complete and 0 interrupted iterations
+hot_post   [  14% ] 100 VUs  04.3s/30s
+
+running (0m04.4s), 100/100 VUs, 3011 complete and 0 interrupted iterations
+hot_post   [  15% ] 100 VUs  04.4s/30s
+
+running (0m05.0s), 100/100 VUs, 3371 complete and 0 interrupted iterations
+hot_post   [  17% ] 100 VUs  05.0s/30s
+
+running (0m06.0s), 100/100 VUs, 4123 complete and 0 interrupted iterations
+hot_post   [  20% ] 100 VUs  06.0s/30s
+
+running (0m07.0s), 100/100 VUs, 4895 complete and 0 interrupted iterations
+hot_post   [  23% ] 100 VUs  07.0s/30s
+
+running (0m08.0s), 100/100 VUs, 5751 complete and 0 interrupted iterations
+hot_post   [  27% ] 100 VUs  08.0s/30s
+
+running (0m09.0s), 100/100 VUs, 6793 complete and 0 interrupted iterations
+hot_post   [  30% ] 100 VUs  09.0s/30s
+
+running (0m10.0s), 100/100 VUs, 7924 complete and 0 interrupted iterations
+hot_post   [  33% ] 100 VUs  10.0s/30s
+
+running (0m11.0s), 100/100 VUs, 9056 complete and 0 interrupted iterations
+hot_post   [  37% ] 100 VUs  11.0s/30s
+
+running (0m11.5s), 100/100 VUs, 9423 complete and 0 interrupted iterations
+hot_post   [  38% ] 100 VUs  11.5s/30s
+
+running (0m11.5s), 100/100 VUs, 9473 complete and 0 interrupted iterations
+hot_post   [  38% ] 100 VUs  11.5s/30s
+
+running (0m12.0s), 100/100 VUs, 9605 complete and 0 interrupted iterations
+hot_post   [  40% ] 100 VUs  12.0s/30s
+
+running (0m13.0s), 100/100 VUs, 10626 complete and 0 interrupted iterations
+hot_post   [  43% ] 100 VUs  13.0s/30s
+
+running (0m14.0s), 100/100 VUs, 11732 complete and 0 interrupted iterations
+hot_post   [  47% ] 100 VUs  14.0s/30s
+
+running (0m15.0s), 100/100 VUs, 12911 complete and 0 interrupted iterations
+hot_post   [  50% ] 100 VUs  15.0s/30s
+
+running (0m16.0s), 100/100 VUs, 14278 complete and 0 interrupted iterations
+hot_post   [  53% ] 100 VUs  16.0s/30s
+
+running (0m17.0s), 100/100 VUs, 15463 complete and 0 interrupted iterations
+hot_post   [  57% ] 100 VUs  17.0s/30s
+
+running (0m18.0s), 100/100 VUs, 16618 complete and 0 interrupted iterations
+hot_post   [  60% ] 100 VUs  18.0s/30s
+
+running (0m19.0s), 100/100 VUs, 17942 complete and 0 interrupted iterations
+hot_post   [  63% ] 100 VUs  19.0s/30s
+
+running (0m20.0s), 100/100 VUs, 19221 complete and 0 interrupted iterations
+hot_post   [  67% ] 100 VUs  20.0s/30s
+
+running (0m21.0s), 100/100 VUs, 20188 complete and 0 interrupted iterations
+hot_post   [  70% ] 100 VUs  21.0s/30s
+
+running (0m22.0s), 100/100 VUs, 21256 complete and 0 interrupted iterations
+hot_post   [  73% ] 100 VUs  22.0s/30s
+
+running (0m23.0s), 100/100 VUs, 21791 complete and 0 interrupted iterations
+hot_post   [  77% ] 100 VUs  23.0s/30s
+
+running (0m24.0s), 100/100 VUs, 22880 complete and 0 interrupted iterations
+hot_post   [  80% ] 100 VUs  24.0s/30s
+
+running (0m25.0s), 100/100 VUs, 23667 complete and 0 interrupted iterations
+hot_post   [  83% ] 100 VUs  25.0s/30s
+
+running (0m26.0s), 100/100 VUs, 24586 complete and 0 interrupted iterations
+hot_post   [  87% ] 100 VUs  26.0s/30s
+
+running (0m27.0s), 100/100 VUs, 25394 complete and 0 interrupted iterations
+hot_post   [  90% ] 100 VUs  27.0s/30s
+
+running (0m28.0s), 100/100 VUs, 26295 complete and 0 interrupted iterations
+hot_post   [  93% ] 100 VUs  28.0s/30s
+
+running (0m29.0s), 100/100 VUs, 27143 complete and 0 interrupted iterations
+hot_post   [  97% ] 100 VUs  29.0s/30s
+
+running (0m30.0s), 100/100 VUs, 27586 complete and 0 interrupted iterations
+hot_post   [ 100% ] 100 VUs  30.0s/30s
+
+running (0m30.2s), 000/100 VUs, 27707 complete and 0 interrupted iterations
+hot_post ✓ [ 100% ] 100 VUs  30s

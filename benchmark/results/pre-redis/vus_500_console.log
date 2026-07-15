@@ -1,0 +1,123 @@
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: benchmark/k6/hot_post_test.js
+        output: -
+
+     scenarios: (100.00%) 1 scenario, 500 max VUs, 1m0s max duration (incl. graceful stop):
+              * hot_post: 500 looping VUs for 30s (gracefulStop: 30s)
+
+
+running (0m00.9s), 500/500 VUs, 755 complete and 0 interrupted iterations
+hot_post   [   3% ] 500 VUs  00.9s/30s
+
+running (0m01.9s), 500/500 VUs, 1729 complete and 0 interrupted iterations
+hot_post   [   6% ] 500 VUs  01.9s/30s
+
+running (0m02.9s), 500/500 VUs, 2272 complete and 0 interrupted iterations
+hot_post   [  10% ] 500 VUs  02.9s/30s
+
+running (0m03.9s), 500/500 VUs, 3079 complete and 0 interrupted iterations
+hot_post   [  13% ] 500 VUs  03.9s/30s
+
+running (0m04.9s), 500/500 VUs, 3804 complete and 0 interrupted iterations
+hot_post   [  16% ] 500 VUs  04.9s/30s
+
+running (0m05.9s), 500/500 VUs, 4769 complete and 0 interrupted iterations
+hot_post   [  20% ] 500 VUs  05.9s/30s
+
+running (0m06.9s), 500/500 VUs, 5760 complete and 0 interrupted iterations
+hot_post   [  23% ] 500 VUs  06.9s/30s
+
+running (0m07.9s), 500/500 VUs, 6708 complete and 0 interrupted iterations
+hot_post   [  26% ] 500 VUs  07.9s/30s
+
+running (0m08.9s), 500/500 VUs, 7788 complete and 0 interrupted iterations
+hot_post   [  30% ] 500 VUs  08.9s/30s
+
+running (0m09.9s), 500/500 VUs, 8964 complete and 0 interrupted iterations
+hot_post   [  33% ] 500 VUs  09.9s/30s
+
+running (0m10.9s), 500/500 VUs, 9831 complete and 0 interrupted iterations
+hot_post   [  36% ] 500 VUs  10.9s/30s
+
+running (0m11.9s), 500/500 VUs, 10945 complete and 0 interrupted iterations
+hot_post   [  40% ] 500 VUs  11.9s/30s
+
+running (0m12.9s), 500/500 VUs, 11987 complete and 0 interrupted iterations
+hot_post   [  43% ] 500 VUs  12.9s/30s
+
+running (0m13.9s), 500/500 VUs, 12907 complete and 0 interrupted iterations
+hot_post   [  46% ] 500 VUs  13.9s/30s
+
+running (0m14.9s), 500/500 VUs, 13866 complete and 0 interrupted iterations
+hot_post   [  50% ] 500 VUs  14.9s/30s
+
+running (0m15.9s), 500/500 VUs, 15025 complete and 0 interrupted iterations
+hot_post   [  53% ] 500 VUs  15.9s/30s
+
+running (0m16.9s), 500/500 VUs, 16008 complete and 0 interrupted iterations
+hot_post   [  56% ] 500 VUs  16.9s/30s
+
+running (0m17.9s), 500/500 VUs, 16972 complete and 0 interrupted iterations
+hot_post   [  60% ] 500 VUs  17.9s/30s
+
+running (0m18.9s), 500/500 VUs, 18162 complete and 0 interrupted iterations
+hot_post   [  63% ] 500 VUs  18.9s/30s
+
+running (0m19.9s), 500/500 VUs, 19057 complete and 0 interrupted iterations
+hot_post   [  66% ] 500 VUs  19.9s/30s
+
+running (0m20.9s), 500/500 VUs, 20192 complete and 0 interrupted iterations
+hot_post   [  70% ] 500 VUs  20.9s/30s
+
+running (0m21.9s), 500/500 VUs, 21387 complete and 0 interrupted iterations
+hot_post   [  73% ] 500 VUs  21.9s/30s
+
+running (0m22.9s), 500/500 VUs, 22492 complete and 0 interrupted iterations
+hot_post   [  76% ] 500 VUs  22.9s/30s
+
+running (0m23.9s), 500/500 VUs, 23520 complete and 0 interrupted iterations
+hot_post   [  80% ] 500 VUs  23.9s/30s
+
+running (0m24.9s), 500/500 VUs, 24673 complete and 0 interrupted iterations
+hot_post   [  83% ] 500 VUs  24.9s/30s
+
+running (0m25.9s), 500/500 VUs, 25819 complete and 0 interrupted iterations
+hot_post   [  86% ] 500 VUs  25.9s/30s
+
+running (0m26.9s), 500/500 VUs, 26899 complete and 0 interrupted iterations
+hot_post   [  90% ] 500 VUs  26.9s/30s
+
+running (0m27.9s), 500/500 VUs, 27748 complete and 0 interrupted iterations
+hot_post   [  93% ] 500 VUs  27.9s/30s
+
+running (0m28.9s), 500/500 VUs, 28597 complete and 0 interrupted iterations
+hot_post   [  96% ] 500 VUs  28.9s/30s
+
+running (0m29.9s), 500/500 VUs, 29813 complete and 0 interrupted iterations
+hot_post   [ 100% ] 500 VUs  29.9s/30s
+
+running (0m30.9s), 001/500 VUs, 30429 complete and 0 interrupted iterations
+hot_post ↓ [ 100% ] 500 VUs  30s
+
+running (0m31.9s), 001/500 VUs, 30429 complete and 0 interrupted iterations
+hot_post ↓ [ 100% ] 500 VUs  30s
+
+running (0m32.9s), 001/500 VUs, 30429 complete and 0 interrupted iterations
+hot_post ↓ [ 100% ] 500 VUs  30s
+
+running (0m33.9s), 001/500 VUs, 30429 complete and 0 interrupted iterations
+hot_post ↓ [ 100% ] 500 VUs  30s
+
+running (0m34.9s), 001/500 VUs, 30429 complete and 0 interrupted iterations
+hot_post ↓ [ 100% ] 500 VUs  30s
+
+running (0m35.8s), 000/500 VUs, 30430 complete and 0 interrupted iterations
+hot_post ✓ [ 100% ] 500 VUs  30s
