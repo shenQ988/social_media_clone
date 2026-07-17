@@ -9,7 +9,7 @@
 set -Eeuo pipefail
 set -x
 
-DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5432/pixframe}"
+DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5433/pixframe}"
 
 # 1. Check that Postgres is reachable and the database has been seeded
 if ! psql "$DATABASE_URL" -tAc \

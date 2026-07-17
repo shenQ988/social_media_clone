@@ -1,5 +1,6 @@
 package com.pixframe.controller;
 
+import com.pixframe.cache.PostDetailCache;
 import com.pixframe.dao.CommentDao;
 import com.pixframe.dao.LikeDao;
 import com.pixframe.dao.PostDao;
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,16 +37,19 @@ public class PostsController {
     private final LikeDao likeDao;
     private final AuthUtil authUtil;
     private final FileStorageUtil fileStorage;
+    private final PostDetailCache postDetailCache;
     private static final DateTimeFormatter TIMESTAMP_FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public PostsController(PostDao postDao, CommentDao commentDao, LikeDao likeDao,
-                            AuthUtil authUtil, FileStorageUtil fileStorage) {
+                            AuthUtil authUtil, FileStorageUtil fileStorage,
+                            PostDetailCache postDetailCache) {
         this.postDao = postDao;
         this.commentDao = commentDao;
         this.likeDao = likeDao;
         this.authUtil = authUtil;
         this.fileStorage = fileStorage;
+        this.postDetailCache = postDetailCache;
     }
 
     /** Formats a Postgres TIMESTAMP as "yyyy-MM-dd HH:mm:ss", matching the
@@ -148,11 +153,19 @@ public class PostsController {
             return ApiError.forbidden();
         }
 
+        Optional<Map<String, Object>> cached = postDetailCache.get(postid, logname);
+        if (cached.isPresent()) {
+            return ResponseEntity.ok(cached.get());
+        }
+
+
+        // query 1: fetches post and owner detail
         Map<String, Object> post = postDao.findDetail(postid);
         if (post == null) {
             return ApiError.notFound();
         }
 
+        // query 2: fetches commments
         List<Map<String, Object>> comments = commentDao.findByPostid(postid);
         List<Map<String, Object>> commentsList = new ArrayList<>();
         for (Map<String, Object> comment : comments) {
@@ -167,8 +180,12 @@ public class PostsController {
             commentsList.add(commentJson);
         }
 
+        //query 3: like count 
         int numLikes = likeDao.countByPostid(postid);
+
         Integer likeId = likeDao.findLikeId(logname, postid);
+
+        // query 4 logname liked this
         boolean lognameLikesThis = likeId != null;
 
         Map<String, Object> likeObject = new LinkedHashMap<>();
@@ -189,6 +206,8 @@ public class PostsController {
         context.put("postShowUrl", "/posts/" + postid + "/");
         context.put("postid", postid);
         context.put("url", request.getRequestURI());
+
+        postDetailCache.put(postid, logname, context);
         return ResponseEntity.ok(context);
     }
 
@@ -230,6 +249,7 @@ public class PostsController {
 
         fileStorage.delete((String) row.get("filename"));
         postDao.delete(postid);
+        postDetailCache.invalidate(postid);
         return ResponseEntity.noContent().build();
     }
 }

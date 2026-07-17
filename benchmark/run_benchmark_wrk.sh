@@ -35,7 +35,7 @@ LABEL="${1:-pre-redis}"
 DURATION="${2:-30s}"
 BASE_URL="${BASE_URL:-http://localhost:8000}"
 POSTID="${POSTID:-9}"
-DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5432/pixframe}"
+DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5433/pixframe}"
 THREADS="${THREADS:-8}"
 
 RESULTS_DIR="benchmark/results/${LABEL}"

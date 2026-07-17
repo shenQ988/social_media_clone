@@ -1,5 +1,6 @@
 package com.pixframe.controller;
 
+import com.pixframe.cache.PostDetailCache;
 import com.pixframe.dao.CommentDao;
 import com.pixframe.dao.PostDao;
 import com.pixframe.util.ApiError;
@@ -23,11 +24,14 @@ public class CommentsController {
     private final CommentDao commentDao;
     private final PostDao postDao;
     private final AuthUtil authUtil;
+    private final PostDetailCache postDetailCache;
 
-    public CommentsController(CommentDao commentDao, PostDao postDao, AuthUtil authUtil) {
+    public CommentsController(CommentDao commentDao, PostDao postDao, AuthUtil authUtil,
+                               PostDetailCache postDetailCache) {
         this.commentDao = commentDao;
         this.postDao = postDao;
         this.authUtil = authUtil;
+        this.postDetailCache = postDetailCache;
     }
 
     // POST /api/v1/comments/?postid=<postid>
@@ -51,7 +55,9 @@ public class CommentsController {
             return ApiError.notFound();
         }
 
+        // a new comment is added, and the postid key got invalidated
         int commentid = commentDao.create(logname, postid, text);
+        postDetailCache.invalidate(postid);
 
         Map<String, Object> context = new LinkedHashMap<>();
         context.put("commentid", commentid);
@@ -78,7 +84,14 @@ public class CommentsController {
         if (!owner.equals(logname)) {
             return ApiError.forbidden();
         }
+
+        // findPostid is defined in commendao, look up the post id
+        // of that comment. 
+        Integer postid = commentDao.findPostid(commentid);
         commentDao.delete(commentid);
+        if (postid != null) {
+            postDetailCache.invalidate(postid);
+        }
         return ResponseEntity.noContent().build();
     }
 }

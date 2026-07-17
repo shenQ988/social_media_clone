@@ -1,0 +1,13 @@
+Running 30s test @ http://localhost:8000/api/v1/posts/9/
+  8 threads and 100 connections
+  Thread Stats   Avg      Stdev     Max   +/- Stdev
+    Latency    15.65ms   13.25ms 182.03ms   88.60%
+    Req/Sec     0.86k   151.53     1.74k    76.59%
+  206228 requests in 30.11s, 125.91MB read
+Requests/sec:   6848.92
+Transfer/sec:      4.18MB
+
+=== hot post benchmark (wrk) ===
+requests: 206228  throughput: 6848.92 req/s  errors(non-200): 0
+latency avg: 15.65ms  p50: 13.38ms  p90: 30.03ms  p95: 39.86ms  p99: 67.44ms  max: 182.03ms
+socket errors: connect=0 read=0 write=0 timeout=0

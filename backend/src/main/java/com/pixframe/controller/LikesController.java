@@ -1,5 +1,6 @@
 package com.pixframe.controller;
 
+import com.pixframe.cache.PostDetailCache;
 import com.pixframe.dao.LikeDao;
 import com.pixframe.dao.PostDao;
 import com.pixframe.util.ApiError;
@@ -21,11 +22,14 @@ public class LikesController {
     private final LikeDao likeDao;
     private final PostDao postDao;
     private final AuthUtil authUtil;
+    private final PostDetailCache postDetailCache;
 
-    public LikesController(LikeDao likeDao, PostDao postDao, AuthUtil authUtil) {
+    public LikesController(LikeDao likeDao, PostDao postDao, AuthUtil authUtil,
+                            PostDetailCache postDetailCache) {
         this.likeDao = likeDao;
         this.postDao = postDao;
         this.authUtil = authUtil;
+        this.postDetailCache = postDetailCache;
     }
 
     // POST /api/v1/likes/?postid=<postid>
@@ -52,6 +56,7 @@ public class LikesController {
         }
 
         int likeid = likeDao.create(logname, postid);
+        postDetailCache.invalidate(postid);
         return ResponseEntity.status(HttpStatus.CREATED).body(Map.of(
                 "likeid", likeid,
                 "url", "/api/v1/likes/" + likeid + "/"));
@@ -71,7 +76,11 @@ public class LikesController {
         if (!owner.equals(logname)) {
             return ApiError.forbidden();
         }
+        Integer postid = likeDao.findPostid(likeid);
         likeDao.delete(likeid);
+        if (postid != null) {
+            postDetailCache.invalidate(postid);
+        }
         return ResponseEntity.noContent().build();
     }
 }

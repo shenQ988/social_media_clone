@@ -24,7 +24,7 @@ set -Eeuo pipefail
 LABEL="${1:-pre-redis}"
 DURATION="${2:-30s}"
 BASE_URL="${BASE_URL:-http://localhost:8000}"
-DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5432/pixframe}"
+DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5433/pixframe}"
 
 RESULTS_DIR="benchmark/results/${LABEL}"
 mkdir -p "$RESULTS_DIR"

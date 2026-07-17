@@ -41,6 +41,14 @@ public class LikeDao {
         return rows.isEmpty() ? null : (String) rows.get(0).get("owner");
     }
 
+    /** Returns the postid a like belongs to, or null if it doesn't exist.
+     * Used to invalidate PostDetailCache when a like is deleted. */
+    public Integer findPostid(int likeid) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT postid FROM likes WHERE likeid = ?", likeid);
+        return rows.isEmpty() ? null : (Integer) rows.get(0).get("postid");
+    }
+
     public void delete(int likeid) {
         jdbc.update("DELETE FROM likes WHERE likeid = ?", likeid);
     }

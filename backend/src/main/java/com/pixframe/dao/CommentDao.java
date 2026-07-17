@@ -36,6 +36,14 @@ public class CommentDao {
         return rows.isEmpty() ? null : (String) rows.get(0).get("owner");
     }
 
+    /** Returns the postid a comment belongs to, or null if it doesn't exist.
+     * Used to invalidate PostDetailCache when a comment is deleted. */
+    public Integer findPostid(int commentid) {
+        List<Map<String, Object>> rows = jdbc.queryForList(
+                "SELECT postid FROM comments WHERE commentid = ?", commentid);
+        return rows.isEmpty() ? null : (Integer) rows.get(0).get("postid");
+    }
+
     public void delete(int commentid) {
         jdbc.update("DELETE FROM comments WHERE commentid = ?", commentid);
     }

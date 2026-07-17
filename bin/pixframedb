@@ -6,14 +6,16 @@
 # container documented in the README / migration plan:
 #   docker run --name pixframe-pg -e POSTGRES_USER=pixframe \
 #     -e POSTGRES_PASSWORD=pixframe -e POSTGRES_DB=pixframe \
-#     -p 5432:5432 -d postgres:16
+#     -p 5433:5432 -d postgres:16
+# (host port 5433, not 5432 -- this machine runs another project's Postgres
+# container on the default 5432)
 
 # Stop on errors
 # See https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 set -Eeuo pipefail
 set -x
 
-DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5432/pixframe}"
+DATABASE_URL="${DATABASE_URL:-postgresql://pixframe:pixframe@localhost:5433/pixframe}"
 
 # Sanity check command line options
 usage() {
