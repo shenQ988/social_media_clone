@@ -1,6 +1,6 @@
 # Pixframe
 
-Pixframe is a full-stack, Instagram-style photo-sharing app: users sign up,
+Pixframe (https://pixframe-backend.onrender.com) is a full-stack, Instagram-style photo-sharing app: users sign up,
 post images, follow each other, and like/comment on posts. The frontend is
 a React single-page app (React Router, infinite-scroll feed) talking to a
 versioned JSON REST API (`/api/v1/...`) backed by Spring Boot, PostgreSQL,
