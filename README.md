@@ -1,7 +1,16 @@
 # Pixframe
 
-Pixframe (https://pixframe-backend.onrender.com) is a full-stack, Instagram-style photo-sharing app: users sign up, post images, follow each other, and like/comment on posts. The frontend is a React single-page app (React Router, infinite-scroll feed) talking to a versioned JSON REST API (/api/v1/...) backed by Spring Boot, PostgreSQL, and a Redis cache layer. The project started as a hybrid server-rendered app and was rewritten in stages — first into a full SPA, then the backend was migrated from Flask/SQLite to Spring Boot/PostgreSQL, and finally a Redis caching layer was added after load testing confirmed a real connection-pool bottleneck on the "view a post" endpoint. Every one of those changes is backed by before/after benchmark data, not just claimed — see benchmark/results/pre-redis/REPORT.md for the full investigation
-
+Pixframe (https://pixframe-backend.onrender.com) is a full-stack, Instagram-style photo-sharing app: users sign up,
+post images, follow each other, and like/comment on posts. The frontend is
+a React single-page app (React Router, infinite-scroll feed) talking to a
+versioned JSON REST API (`/api/v1/...`) backed by Spring Boot, PostgreSQL,
+and a Redis cache layer. The project started as a hybrid server-rendered
+app and was rewritten in stages — first into a full SPA, then the backend
+was migrated from Flask/SQLite to Spring Boot/PostgreSQL, and finally a
+Redis caching layer was added after load testing confirmed a real
+connection-pool bottleneck on the "view a post" endpoint. Every one of
+those changes is backed by before/after benchmark data, not just claimed —
+see `benchmark/results/pre-redis/REPORT.md` for the full investigation.
 
 ## Architecture
 
