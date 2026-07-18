@@ -1,112 +1,147 @@
 # Pixframe
 
-Pixframe is a full-stack, Instagram-style photo-sharing app: users sign up,
-post images, follow each other, and like/comment on posts. The frontend is
-a React single-page app (React Router, infinite-scroll feed) talking to a
-versioned JSON REST API (`/api/v1/...`) backed by Spring Boot, PostgreSQL,
-and a Redis cache layer. The project started as a hybrid server-rendered
-app and was rewritten in stages — first into a full SPA, then the backend
-was migrated from Flask/SQLite to Spring Boot/PostgreSQL, and finally a
-Redis caching layer was added after load testing confirmed a real
-connection-pool bottleneck on the "view a post" endpoint. Every one of
-those changes is backed by before/after benchmark data, not just claimed —
-see `benchmark/results/pre-redis/REPORT.md` for the full investigation.
+Pixframe (https://pixframe-backend.onrender.com) is a full-stack, Instagram-style photo-sharing app: users sign up, post images, follow each other, and like/comment on posts. The frontend is a React single-page app (React Router, infinite-scroll feed) talking to a versioned JSON REST API (/api/v1/...) backed by Spring Boot, PostgreSQL, and a Redis cache layer. The project started as a hybrid server-rendered app and was rewritten in stages — first into a full SPA, then the backend was migrated from Flask/SQLite to Spring Boot/PostgreSQL, and finally a Redis caching layer was added after load testing confirmed a real connection-pool bottleneck on the "view a post" endpoint. Every one of those changes is backed by before/after benchmark data, not just claimed — see benchmark/results/pre-redis/REPORT.md for the full investigation
+
 
 ## Architecture
 
 ```
-React SPA (browser)
-  - React Router + fetch(); session cookie, or HTTP Basic Auth for
-    non-browser API clients
-  |
-  |  HTTP: JSON over /api/v1/..., or a static SPA shell for any other path
-  v
-Spring Boot backend (:8000)
-  |
-  |-- Controller (one per resource: Posts, Comments, Likes, Users, ...)
-  |     |
-  |     |-- AuthUtil -- checks session, falls back to HTTP Basic Auth
-  |     |               (verifies credentials against the DB)
-  |     |
-  |     '-- PostDetailCache -- cache-aside, GET /posts/{id} only
-  |           |
-  |           |-- HIT  --> Redis (post-detail:{postid}:{logname},
-  |           |            60s TTL + a per-post tracking set for
-  |           |            bulk invalidation on writes)
-  |           |
-  |           '-- MISS --> DAO layer (JdbcTemplate, hand-written SQL,
-  |                        no ORM)
-  |                          |
-  v                          v
-(response)              PostgreSQL 16 (HikariCP connection pool)
+React SPA (Browser)
+    │
+    ├── React Router (client-side routing)
+    ├── fetch() → /api/v1/...
+    └── Session Cookie / HTTP Basic Auth
+            │
+            ▼
+Spring Boot REST API
+    │
+    ├── Authentication
+    │      └── Session → HTTP Basic fallback
+    │
+    ├── Controllers
+    │
+    ├── PostDetailCache (cache-aside)
+    │      │
+    │      ├── Cache Hit
+    │      │      ▼
+    │      │    Redis
+    │      │
+    │      └── Cache Miss
+    │             ▼
+    └──────────── DAO (JdbcTemplate)
+                   │
+                HikariCP (default = 10)
+                   │
+              PostgreSQL 16
 ```
 
-- **Frontend** (`pixframe/js/`): React 19 + React Router, built with
-  webpack/Babel into `pixframe/static/js/bundle.js`. Every page is a
-  client-routed React component; the backend serves one static HTML shell
-  (`pixframe/templates/index.html`) for any non-API path so deep links and
-  hard refreshes work.
-- **Backend** (`backend/`): Spring Boot 3 (Java 21), organized as
-  `controller/` (HTTP layer, one class per resource) → `dao/`
-  (`JdbcTemplate`-based, one method per SQL query, no ORM) → PostgreSQL.
-  `util/AuthUtil` centralizes authentication (session cookie, with an
-  HTTP Basic Auth fallback for non-browser API clients);
-  `cache/PostDetailCache` sits in front of the single most-requested
-  endpoint (`GET /api/v1/posts/{postid}/`) as a cache-aside layer over
-  Redis.
-- **Data**: PostgreSQL for durable state (users, posts, comments, likes,
-  follows), local disk for uploaded images, Redis for the post-detail
-  cache only (nothing is *only* in Redis — it's always safe to flush).
+**Frontend (`pixframe/js/`)** — React 19 with React Router, bundled with webpack/Babel into a production JavaScript bundle. Navigation is handled entirely through client-side routing; the backend serves a single HTML shell (`pixframe/templates/index.html`) for all non-API routes so deep links and browser refreshes resolve correctly.
+
+**Backend (`backend/`)** — Spring Boot 3 (Java 21) exposing a versioned REST API. Requests flow through resource-specific controllers into `JdbcTemplate`-based DAOs with hand-written SQL (no ORM) backed by PostgreSQL. `AuthUtil` centralizes authentication using session cookies, with HTTP Basic Authentication supported for non-browser API clients. `PostDetailCache` implements a cache-aside Redis layer for the performance-critical `GET /api/v1/posts/{postid}/` endpoint.
+
+**Data** — PostgreSQL stores all durable application state (users, posts, comments, likes, and follows), while uploaded images are stored on local disk. Redis is used exclusively as a cache for post-detail responses; it contains no authoritative data, so the cache can be safely flushed or rebuilt at any time.
 
 ## Setup
 
-**Dependencies:** Java 21, Maven, Node.js 24+, Docker (for Postgres and
-Redis), `psql` client.
+### Prerequisites
 
-**1. Install project dependencies:**
+* Java 21
+* Maven
+* Node.js 24+
+* Docker
+* `psql` (optional, for inspecting the PostgreSQL database)
+
+### 1. Install project dependencies
+
+Run the setup script to install frontend dependencies and pre-download Maven dependencies:
+
 ```bash
-./bin/pixframeinstall     # npm ci + mvn dependency:go-offline
+./bin/pixframeinstall
 ```
 
-**2. Start Postgres and Redis** (Docker containers, not managed by this
-repo's scripts):
-```bash
-docker run --name pixframe-pg -e POSTGRES_USER=pixframe \
-  -e POSTGRES_PASSWORD=pixframe -e POSTGRES_DB=pixframe \
-  -p 5433:5432 -d postgres:16
+This script performs:
 
-docker run --name pixframe-redis -p 6379:6379 -d redis:7
-```
-(Postgres is mapped to host port **5433**, not the default 5432 — pick a
-different `-p` mapping and update `DATABASE_URL`/`spring.datasource.url`
-below if 5433 is already taken on your machine.)
-
-**3. Create and seed the database:**
 ```bash
-./bin/pixframedb create
+npm ci
+mvn dependency:go-offline
 ```
 
-**4. Run the app** (builds the frontend in watch mode + starts the
-backend on port 8000):
+### 2. Start PostgreSQL and Redis
+
+The application expects PostgreSQL and Redis to be running locally. The following commands start both services in Docker containers:
+
 ```bash
-./bin/pixframerun
+docker run --name pixframe-pg \
+  -e POSTGRES_USER=pixframe \
+  -e POSTGRES_PASSWORD=pixframe \
+  -e POSTGRES_DB=pixframe \
+  -p 5433:5432 \
+  -d postgres:16
+
+docker run --name pixframe-redis \
+  -p 6379:6379 \
+  -d redis:7
 ```
-Open **http://localhost:8000**.
 
-**Environment variables** (all optional — sensible defaults are baked into
-`backend/src/main/resources/application.properties` and the `bin/`
-scripts):
+> **Note:** PostgreSQL is mapped to host port **5433** to avoid conflicts with existing local installations. If you use a different port, update `DATABASE_URL` (or `spring.datasource.url`) accordingly.
 
-| Variable | Default | Used by |
-|---|---|---|
-| `DATABASE_URL` | `postgresql://pixframe:pixframe@localhost:5433/pixframe` | `bin/pixframedb`, `bin/pixframerun`, `benchmark/run_benchmark*.sh` |
-| `SPRING_DATASOURCE_URL` / `_USERNAME` / `_PASSWORD` | same as above, Spring Boot's own binding | overriding the backend's DB connection directly (e.g. running an old/alternate build against a different Postgres) |
+### 3. Configure environment variables
 
-Other commands:
-- `./bin/pixframedb reset` — wipe and reseed the database.
-- `./bin/pixframedb destroy` — drop everything, no reseed.
-- `./bin/pixframetest` — backend tests (`mvn test`) + frontend lint
-  (`eslint`/`prettier`).
+Configure the application to connect to your PostgreSQL and Redis instances:
+
+```text
+DATABASE_URL=jdbc:postgresql://localhost:5433/pixframe
+DATABASE_USERNAME=pixframe
+DATABASE_PASSWORD=pixframe
+
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+### 4. Start the application
+
+Start the Spring Boot backend:
+
+```bash
+mvn spring-boot:run
+```
+
+In a separate terminal, build and watch the React frontend:
+
+```bash
+npm run dev
+```
+
+The application will be available at:
+
+* **Frontend:** http://localhost:8000/
+* **REST API:** http://localhost:8000/api/v1/
+
+
+### Environment Variables
+
+Most users do **not** need to configure any environment variables. Reasonable defaults are provided in `backend/src/main/resources/application.properties` and used by the helper scripts in `bin/`.
+
+| Variable                     | Default                                                  | Purpose                                                                                |
+| ---------------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `DATABASE_URL`               | `postgresql://pixframe:pixframe@localhost:5433/pixframe` | Used by helper scripts (`bin/pixframedb`, `bin/pixframerun`) and benchmarking scripts. |
+| `SPRING_DATASOURCE_URL`      | Derived from `DATABASE_URL`                              | Overrides the PostgreSQL connection used by Spring Boot.                               |
+| `SPRING_DATASOURCE_USERNAME` | `pixframe`                                               | PostgreSQL username.                                                                   |
+| `SPRING_DATASOURCE_PASSWORD` | `pixframe`                                               | PostgreSQL password.                                                                   |
+
+These variables only need to be changed if you are connecting to a different PostgreSQL instance or using non-default credentials.
+
+### Helper Scripts
+
+The repository includes several helper scripts for common development tasks:
+
+| Command                    | Description                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `./bin/pixframedb reset`   | Recreate the database schema and reseed the sample data.                                               |
+| `./bin/pixframedb destroy` | Drop the database schema without reseeding.                                                            |
+| `./bin/pixframerun`        | Start the Spring Boot backend using the project's default configuration.                               |
+| `./bin/pixframetest`       | Run the backend test suite (`mvn test`) and frontend formatting/lint checks (`eslint` and `prettier`). |
+
 
 ## Sample data / seed script
 
@@ -130,35 +165,22 @@ Other commands:
 
 ## Deploying to Render
 
-The repo is set up to deploy as a single Docker image (backend serves the
-built frontend itself — same origin, no CORS to configure) via
-`render.yaml`, a Render Blueprint. In Render's current dashboard,
-Blueprints live in their own left-sidebar section (not under the old
-"+ New" resource menu) — connect this repo there, point it at `render.yaml`
-at the repo root, and review the proposed plan before deploying.
+Pixframe is deployed as a **single Docker container** that serves both the React frontend and the Spring Boot backend from the same origin. This eliminates the need for a separate frontend deployment or CORS configuration.
 
-This provisions:
-- **`pixframe-backend`** — built from the root `Dockerfile` (multi-stage:
-  Node builds the frontend, Maven builds the backend jar, a slim JRE image
-  runs it). `docker-entrypoint.sh` assembles `SPRING_DATASOURCE_URL` from
-  Render's discrete Postgres fields (`PGHOST`/`PGPORT`/`PGDATABASE`) at
-  startup, since Spring needs a `jdbc:postgresql://...` URL, not Render's
-  own `postgres://...` connection string.
-- **`pixframe-pg`** — managed Postgres.
-- **`pixframe-redis`** — managed Key Value (Redis) instance.
+Deployment is managed through **Render Blueprints** using the repository's `render.yaml` configuration.
 
-All of the env vars the app needs (`SPRING_DATASOURCE_*`,
-`SPRING_DATA_REDIS_*`, `PORT`) are wired automatically by the Blueprint —
-nothing to fill in by hand for a first deploy.
+The Blueprint provisions three services:
 
-**Seeding runs from the entrypoint, not a Pre-Deploy Command.** Render's
-free tier doesn't support the dashboard's Pre-Deploy Command feature, so
-`docker-entrypoint.sh` runs the same idempotent guard `bin/pixframedb
-create` uses (check for an existing `users` table; seed only if absent)
-on every container boot instead of as a separate deploy hook. Functionally
-identical, just relocated so it works on the free plan — if the app is
-later moved to a paid plan, moving this back into a `preDeployCommand` is
-a reasonable but optional cleanup.
+| Service              | Purpose                                                                                                                                 |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| **pixframe-backend** | Multi-stage Docker image that builds the React frontend, packages the Spring Boot application, and serves both from a single container. |
+| **pixframe-pg**      | Managed PostgreSQL database.                                                                                                            |
+| **pixframe-redis**   | Managed Redis instance used for the post-detail cache.                                                                                  |
+
+During container startup, `docker-entrypoint.sh` constructs Spring Boot's JDBC connection URL from Render's PostgreSQL environment variables and performs an idempotent database initialization. If the schema has not yet been created, it executes the same setup process as `./bin/pixframedb create`; otherwise startup proceeds normally without modifying existing data.
+
+The Blueprint automatically configures the required environment variables (`SPRING_DATASOURCE_*`, `SPRING_DATA_REDIS_*`, and `PORT`), so no manual configuration is required for a standard deployment.
+
 
 **Known trade-off: uploads don't persist.** Render's web service disk is
 ephemeral — anything written to it (including images uploaded through the
