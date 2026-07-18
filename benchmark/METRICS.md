@@ -32,8 +32,8 @@ time. That's the gap Prometheus + Grafana fills below.
   you two points in time. For a real average/peak *during* the run, either:
   - Poll it every second while k6 runs (`while true; do curl -s
     .../process.cpu.usage; sleep 1; done > cpu_samples.txt`) and compute
-    avg/max after, same pattern the earlier Python `loadtest/viral_post_test.py`
-    used with `psutil`, or
+    avg/max after (the same polling pattern the project's earlier,
+    now-retired Flask-era load-test tool used via Python's `psutil`), or
   - Let Prometheus scrape it on an interval automatically and read
     avg/max straight off a Grafana graph -- no manual polling loop needed.
 - **Postgres container**: since it runs in Docker
