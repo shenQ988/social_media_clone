@@ -20,3 +20,9 @@ var/
 .DS_Store
 .vscode/
 .idea/
+
+# Claude Code session/tooling config -- not project source
+.claude/
+
+# Interview-prep writeup, kept locally but not in the tracked repo
+MIGRATION.md
