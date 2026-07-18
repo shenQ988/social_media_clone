@@ -132,11 +132,10 @@ Other commands:
 
 The repo is set up to deploy as a single Docker image (backend serves the
 built frontend itself — same origin, no CORS to configure) via
-`render.yaml`, a Render Blueprint:
-
-```bash
-render blueprint launch   # or: connect the repo in Render's dashboard
-```
+`render.yaml`, a Render Blueprint. In Render's current dashboard,
+Blueprints live in their own left-sidebar section (not under the old
+"+ New" resource menu) — connect this repo there, point it at `render.yaml`
+at the repo root, and review the proposed plan before deploying.
 
 This provisions:
 - **`pixframe-backend`** — built from the root `Dockerfile` (multi-stage:
@@ -147,14 +146,19 @@ This provisions:
   own `postgres://...` connection string.
 - **`pixframe-pg`** — managed Postgres.
 - **`pixframe-redis`** — managed Key Value (Redis) instance.
-- A **pre-deploy command** that seeds the database on first deploy only
-  (it checks for an existing `users` table first, mirroring
-  `bin/pixframedb create`'s own guard, so it's safe to leave in place on
-  every subsequent deploy).
 
 All of the env vars the app needs (`SPRING_DATASOURCE_*`,
 `SPRING_DATA_REDIS_*`, `PORT`) are wired automatically by the Blueprint —
 nothing to fill in by hand for a first deploy.
+
+**Seeding runs from the entrypoint, not a Pre-Deploy Command.** Render's
+free tier doesn't support the dashboard's Pre-Deploy Command feature, so
+`docker-entrypoint.sh` runs the same idempotent guard `bin/pixframedb
+create` uses (check for an existing `users` table; seed only if absent)
+on every container boot instead of as a separate deploy hook. Functionally
+identical, just relocated so it works on the free plan — if the app is
+later moved to a paid plan, moving this back into a `preDeployCommand` is
+a reasonable but optional cleanup.
 
 **Known trade-off: uploads don't persist.** Render's web service disk is
 ephemeral — anything written to it (including images uploaded through the
