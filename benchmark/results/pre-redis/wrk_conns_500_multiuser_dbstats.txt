@@ -1,0 +1,21 @@
+# Multi-user (100-account pool) benchmark, TRUE pre-Redis backend
+# (git commit bb93511, checked out into an isolated `git worktree`,
+# built and run on port 8000 against the same Postgres instance,
+# no Redis dependency exists in this commit at all)
+#
+# Setup: docker exec pixframe-pg psql -U pixframe -d pixframe -c "SELECT pg_stat_statements_reset();"
+
+-- pg_stat_statements, ORDER BY calls DESC LIMIT 10, immediately after the run --
+ calls |                                                                             query
+-------+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 56901 | SELECT p.filename AS post_filename, p.owner, p.created, u.filename AS owner_img_filename FROM posts p JOIN users u ON p.owner = u.username WHERE p.postid = $1
+ 56901 | SELECT COUNT(*) FROM likes WHERE postid = $1
+ 56901 | SELECT username, fullname, email, filename, password FROM users WHERE username = $1
+ 56901 | SELECT commentid, owner, text FROM comments WHERE postid = $1 ORDER BY commentid ASC
+ 56901 | SELECT likeid FROM likes WHERE owner = $1 AND postid = $2
+     1 | SELECT pg_stat_statements_reset()
+(6 rows)
+
+# No caching exists in this code at all -- all 5 queries (4 post-detail +
+# 1 auth-check) show identical call counts, each matching the request
+# count almost exactly. Every single request costs 5 DB round trips.

@@ -1,0 +1,16 @@
+# Multi-user (100-account pool) benchmark, TRUE pre-Redis backend
+# (git commit bb93511, isolated worktree), 1000 connections
+
+-- pg_stat_statements, ORDER BY calls DESC LIMIT 10 --
+ calls |                                                                             query
+-------+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 54903 | SELECT p.filename AS post_filename, p.owner, p.created, u.filename AS owner_img_filename FROM posts p JOIN users u ON p.owner = u.username WHERE p.postid = $1
+ 54903 | SELECT COUNT(*) FROM likes WHERE postid = $1
+ 54903 | SELECT username, fullname, email, filename, password FROM users WHERE username = $1
+ 54903 | SELECT commentid, owner, text FROM comments WHERE postid = $1 ORDER BY commentid ASC
+ 54903 | SELECT likeid FROM likes WHERE owner = $1 AND postid = $2
+     1 | SELECT pg_stat_statements_reset()
+(6 rows)
+
+# No caching exists in this code -- all 5 queries (4 post-detail + 1
+# auth-check) show identical call counts, matching request count closely.

@@ -3,16 +3,27 @@
 -- event loop, no per-VU JS VM), so it competes far less with the backend
 -- for CPU when both run on the same machine.
 --
+-- Multi-user mode (default): rotates Basic Auth credentials across a pool
+-- of throwaway accounts (loadtest001..loadtestNNN, created via
+-- benchmark/setup_test_users.sh) so the benchmark simulates genuinely
+-- distinct viewers of the same "viral" post, instead of one single
+-- account hammering the endpoint. This matters because PostDetailCache is
+-- keyed on (postid, logname): a single-user benchmark only ever exercises
+-- one cache key, which trivially inflates the hit rate and never exercises
+-- the invalidation tracking set beyond one member. See the discussion in
+-- benchmark/results/pre-redis/REPORT.md.
+--
+-- Set POOL_SIZE=1 (and optionally USERNAME/PASSWORD) to fall back to the
+-- original single-user behavior.
+--
 -- Usage:
 --   wrk -t4 -c100 -d30s -s benchmark/wrk/hot_post.lua \
 --       http://localhost:8000/api/v1/posts/9/
---
--- Auth credentials are read from USERNAME/PASSWORD env vars (defaults
--- below), matching the k6 script's approach -- HTTP Basic Auth, since
--- AuthUtil explicitly supports it for non-browser/stateless clients.
 
-local username = os.getenv("USERNAME") or "mkim"
-local password = os.getenv("PASSWORD") or "password123"
+local pool_size = tonumber(os.getenv("POOL_SIZE")) or 100
+local pool_password = os.getenv("POOL_PASSWORD") or "loadtestpass123"
+local single_username = os.getenv("USERNAME") or "mkim"
+local single_password = os.getenv("PASSWORD") or "password123"
 
 -- Minimal base64 encoder (LuaJIT's standard library has no built-in one).
 local b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
@@ -29,15 +40,38 @@ local function base64encode(data)
   end) .. ({ "", "==", "=" })[#data % 3 + 1])
 end
 
-local auth_header = "Basic " .. base64encode(username .. ":" .. password)
+-- Precompute one Authorization header per pool user (or just one, in
+-- single-user mode) -- avoids re-doing base64 work on every request,
+-- which would add non-representative load-generator overhead.
+local auth_headers = {}
+if pool_size <= 1 then
+  auth_headers[1] = "Basic " .. base64encode(single_username .. ":" .. single_password)
+else
+  for i = 1, pool_size do
+    local username = string.format("loadtest%03d", i)
+    auth_headers[i] = "Basic " .. base64encode(username .. ":" .. pool_password)
+  end
+end
 
-wrk.method = "GET"
-wrk.headers["Authorization"] = auth_header
-wrk.headers["User-Agent"] =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " ..
-  "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
-wrk.headers["Accept"] = "application/json, text/plain, */*"
-wrk.headers["Accept-Language"] = "en-US,en;q=0.9"
+local common_headers = {
+  ["User-Agent"] = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " ..
+    "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+  ["Accept"] = "application/json, text/plain, */*",
+  ["Accept-Language"] = "en-US,en;q=0.9",
+}
+
+-- Round-robin cursor. wrk runs each thread in its own Lua VM (separate
+-- globals per thread), so this is naturally thread-local -- no shared
+-- counter/locking needed across threads.
+local cursor = 0
+
+request = function()
+  cursor = (cursor % #auth_headers) + 1
+  local headers = {}
+  for k, v in pairs(common_headers) do headers[k] = v end
+  headers["Authorization"] = auth_headers[cursor]
+  return wrk.format("GET", nil, headers, nil)
+end
 
 -- Track non-200 responses; wrk has no built-in "fail the run" concept like
 -- k6's thresholds, so the runner script checks this count in the summary
@@ -52,6 +86,7 @@ end
 
 done = function(summary, latency, requests)
   io.write("\n=== hot post benchmark (wrk) ===\n")
+  io.write(string.format("pool_size: %d\n", #auth_headers))
   io.write(string.format("requests: %d  throughput: %.2f req/s  errors(non-200): %d\n",
     summary.requests, summary.requests / (summary.duration / 1e6), non200))
   io.write(string.format("latency avg: %.2fms  p50: %.2fms  p90: %.2fms  p95: %.2fms  p99: %.2fms  max: %.2fms\n",

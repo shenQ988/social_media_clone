@@ -1,0 +1,27 @@
+# Multi-user (100-account pool) benchmark, post-Redis backend
+# Setup: docker exec pixframe-pg psql -U pixframe -d pixframe -c "SELECT pg_stat_statements_reset();"
+#        docker exec pixframe-redis redis-cli INFO stats | grep -E "keyspace_hits|keyspace_misses"
+#        (before run) keyspace_hits:624704  keyspace_misses:548
+
+-- Redis INFO stats, immediately after the run --
+keyspace_hits:806036
+keyspace_misses:765
+
+-- Derived delta for this run --
+hits during run   = 806036 - 624704 = 181332
+misses during run = 765 - 548       = 217
+hit rate           = 181332 / (181332 + 217) = 99.88%
+
+-- Redis: post-cache-keys:9 tracking set size, immediately after --
+SCARD post-cache-keys:9 -> 100
+
+-- pg_stat_statements, ORDER BY calls DESC LIMIT 10, immediately after --
+ calls  |                                                                             query
+--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 181548 | SELECT username, fullname, email, filename, password FROM users WHERE username = $1
+    217 | SELECT p.filename AS post_filename, p.owner, p.created, u.filename AS owner_img_filename FROM posts p JOIN users u ON p.owner = u.username WHERE p.postid = $1
+    217 | SELECT COUNT(*) FROM likes WHERE postid = $1
+    217 | SELECT commentid, owner, text FROM comments WHERE postid = $1 ORDER BY commentid ASC
+    217 | SELECT likeid FROM likes WHERE owner = $1 AND postid = $2
+      1 | SELECT pg_stat_statements_reset()
+(6 rows)

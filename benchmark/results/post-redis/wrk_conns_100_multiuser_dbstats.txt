@@ -1,0 +1,25 @@
+# Multi-user (100-account pool) benchmark, post-Redis backend, 100 connections
+# (before) keyspace_hits:806037  keyspace_misses:765
+
+-- Redis INFO stats, immediately after --
+keyspace_hits:955399
+keyspace_misses:1247
+
+-- Derived delta for this run --
+hits during run   = 955399 - 806037 = 149362
+misses during run = 1247 - 765      = 482
+hit rate           = 149362 / (149362 + 482) = 99.68%
+
+-- post-cache-keys:9 tracking set size, immediately after --
+SCARD post-cache-keys:9 -> 100
+
+-- pg_stat_statements, ORDER BY calls DESC LIMIT 10 --
+ calls  |                                                                             query
+--------+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+ 149844 | SELECT username, fullname, email, filename, password FROM users WHERE username = $1
+    482 | SELECT p.filename AS post_filename, p.owner, p.created, u.filename AS owner_img_filename FROM posts p JOIN users u ON p.owner = u.username WHERE p.postid = $1
+    482 | SELECT COUNT(*) FROM likes WHERE postid = $1
+    482 | SELECT commentid, owner, text FROM comments WHERE postid = $1 ORDER BY commentid ASC
+    482 | SELECT likeid FROM likes WHERE owner = $1 AND postid = $2
+      1 | SELECT pg_stat_statements_reset()
+(6 rows)
