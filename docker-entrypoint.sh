@@ -12,4 +12,18 @@ if [ -n "$PGHOST" ] && [ -n "$PGPORT" ] && [ -n "$PGDATABASE" ]; then
     export SPRING_DATASOURCE_URL="jdbc:postgresql://${PGHOST}:${PGPORT}/${PGDATABASE}"
 fi
 
+# Render's free tier doesn't support the dashboard's Pre-Deploy Command
+# feature, so the same idempotent seed step (mirrors bin/pixframedb
+# create's own guard) runs here instead, on every container start.
+# Safe to repeat: it's a no-op once the `users` table exists.
+if [ -n "$DATABASE_URL" ]; then
+    if ! psql "$DATABASE_URL" -tAc \
+        "SELECT 1 FROM information_schema.tables WHERE table_name='users'" \
+        | grep -q 1; then
+        echo "Seeding database (first boot)..."
+        psql "$DATABASE_URL" -f /app/sql/schema.sql
+        psql "$DATABASE_URL" -f /app/sql/data.sql
+    fi
+fi
+
 exec java -jar pixframe-backend.jar

@@ -1,10 +1,13 @@
 # Render Blueprint -- see https://render.com/docs/blueprint-spec
 #
 # NOTE: written to my best current understanding of Render's Blueprint
-# field names (fromDatabase/fromService, runtime: docker, preDeployCommand).
-# Render's schema has shifted before (Redis was renamed "Key Value" as a
-# service type) -- double-check field names against Render's current docs
-# before running `render blueprint launch`.
+# field names (fromDatabase/fromService, runtime: docker). Render's schema
+# has shifted before (Redis was renamed "Key Value" as a service type) --
+# double-check field names against Render's current docs if sync fails.
+#
+# Database seeding is NOT done via preDeployCommand -- that feature isn't
+# available on free-tier services. See docker-entrypoint.sh instead: it
+# runs the same idempotent schema/data check on every container boot.
 
 databases:
   - name: pixframe-pg
@@ -25,18 +28,11 @@ services:
     dockerContext: .
     plan: free
     healthCheckPath: /actuator/health
-    # Idempotent: mirrors bin/pixframedb create's own guard, so this is
-    # safe to run on every deploy -- seeds once on first deploy, then
-    # no-ops. Requires `psql` on the build image the pre-deploy command
-    # runs in (Render's docker runtime provides it) and network access
-    # to the linked Postgres instance, which Render grants automatically
-    # to services in the same Blueprint.
-    preDeployCommand: >
-      psql "$DATABASE_URL" -tAc
-      "SELECT 1 FROM information_schema.tables WHERE table_name='users'"
-      | grep -q 1 ||
-      (psql "$DATABASE_URL" -f /app/sql/schema.sql &&
-       psql "$DATABASE_URL" -f /app/sql/data.sql)
+    # Database seeding happens in docker-entrypoint.sh, not here --
+    # Render's free tier doesn't support the Pre-Deploy Command feature
+    # (paid plans do; if you upgrade later, moving the same idempotent
+    # check back into a preDeployCommand is a reasonable cleanup, but
+    # not required -- the entrypoint version works on every plan).
     envVars:
       # Discrete fields, not connectionString -- docker-entrypoint.sh
       # assembles these into the jdbc:postgresql://... URL Spring needs,
