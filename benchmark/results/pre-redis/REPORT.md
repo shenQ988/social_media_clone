@@ -11,7 +11,7 @@ concurrent connections, 30s per level, on an M1 Mac. Cross-checked against
 Redis's own `keyspace_hits/misses`.
 
 
-## Multi-user results: pre-Redis vs post-Redis##
+## Multi-user results: pre-Redis vs post-Redis
 
 To isolate the caching change specifically (not the script change too),
 the pre-Redis numbers below are from the last commit before `PostDetailCache`
