@@ -41,17 +41,16 @@ public class PostDetailCache {
 
     /** Returns the cached response for (postid, logname), if present. */
     public Optional<Map<String, Object>> get(int postid, String logname) {
-        String json = redis.opsForValue().get(entryKey(postid, logname));
-        // entryKey returns "post-detail:" + postid + ":" + logname
-        if (json == null) {
-            return Optional.empty();
-        }
         try {
+            String json = redis.opsForValue().get(entryKey(postid, logname));
+            if (json == null) {
+                return Optional.empty();
+            }
             return Optional.of(
                     objectMapper.readValue(json, new TypeReference<Map<String, Object>>() { }));
         } catch (Exception e) {
-            // A corrupted/unreadable cache entry should behave like a
-            // miss, not break the request.
+            // Redis being unreachable or a corrupted/unreadable cache entry
+            // should behave like a miss, not break the request.
             return Optional.empty();
         }
     }
